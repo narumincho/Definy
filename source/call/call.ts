@@ -213,6 +213,57 @@ requestAnimationFrame(() => {
   addEventListener("offline", () => {
     app.ports.changeNetworkConnection.send(false);
   });
+
+  // 32文字 32*4=128bit
+  const createHash = (): string => {
+    let text = "";
+    for (let i = 0; i < 64; i++) {
+      text += Math.floor(Math.random() * 16).toString(16);
+      // text += Math.floor(i % 16).toString(16);
+    }
+    return text;
+  };
+
+  const canvasContainer = document.createElement("div");
+  canvasContainer.style.display = "grid";
+  canvasContainer.style.gridAutoFlow = "column";
+  canvasContainer.style.gap = "2px";
+  document.body.appendChild(canvasContainer);
+
+  for (let k = 0; k < 30; k++) {
+    const uuid = createHash();
+    console.log(uuid);
+
+    const canvasElement = document.createElement("canvas");
+    canvasElement.width = 16;
+    canvasElement.height = 8;
+    canvasContainer.appendChild(canvasElement);
+    canvasElement.style.imageRendering = "pixelated";
+    const context = canvasElement.getContext("2d");
+    if (context === null) {
+      throw new Error("canvas を扱えなかった");
+    }
+    const imageData = context.createImageData(
+      canvasElement.width,
+      canvasElement.height
+    );
+    for (let i = 0; i < 64; i++) {
+      // 0b 00 00
+      const value = Number.parseInt(uuid[i], 16);
+      const left = value >> 2;
+      const right = value & 0b11;
+      const offset = i * 8;
+      imageData.data[offset + 0] = left === 1 ? 255 : 0;
+      imageData.data[offset + 1] = left === 2 ? 255 : 0;
+      imageData.data[offset + 2] = left === 3 ? 255 : 0;
+      imageData.data[offset + 3] = 255;
+      imageData.data[offset + 4] = right === 1 ? 255 : 0;
+      imageData.data[offset + 5] = right === 2 ? 255 : 0;
+      imageData.data[offset + 6] = right === 3 ? 255 : 0;
+      imageData.data[offset + 7] = 255;
+    }
+    context.putImageData(imageData, 0, 0);
+  }
 });
 
 (async (): Promise<void> => {
