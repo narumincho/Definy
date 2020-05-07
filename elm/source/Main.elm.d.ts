@@ -35,15 +35,35 @@ type Ports = {
   readonly toValidProjectName: SubForElmCmd<string>;
   readonly toValidIdeaName: SubForElmCmd<string>;
 
+  /**
+   * indexedDBにあるキャッシュを使用してユーザーを取得する. indexedDBになければサーバーから取得する. 取得したユーザーはindexedDBに保存する
+   */
   readonly getUser: SubForElmCmd<data.UserId>;
+  /**
+   * indexedDBから読み取らずにユーザーをサーバーから取得する. 取得したユーザーはindexedDBに保存する
+   */
   readonly getUserNoCache: SubForElmCmd<data.UserId>;
+
   readonly getAllProjectIdList: SubForElmCmd<null>;
+  /**
+   * indexedDBにあるキャッシュを使用してプロジェクトを取得する. indexedDBになければサーバーから取得する. 取得したプロジェクトはindexedDBに保存する
+   */
   readonly getProject: SubForElmCmd<data.ProjectId>;
+  /**
+   * indexedDBから読み取らずにプロジェクトをサーバーから取得する. 取得したプロジェクトはindexedDBに保存する
+   */
   readonly getProjectNoCache: SubForElmCmd<data.ProjectId>;
-  readonly getProjectForceNotUseCache: SubForElmCmd<data.ProjectId>;
   readonly getIdeaAndIdListByProjectId: SubForElmCmd<data.ProjectId>;
+
+  /**
+   * indexedDBにあるキャッシュを使用してアイデアを取得する. indexedDBになければサーバーから取得する. 取得したアイデアはindexedDBに保存する
+   */
   readonly getIdea: SubForElmCmd<data.IdeaId>;
+  /**
+   * indexedDBから読み取らずにアイデアをサーバーから取得する. 取得したアイデアはindexedDBに保存する
+   */
   readonly getIdeaNoCache: SubForElmCmd<data.IdeaId>;
+
   readonly getSuggestion: SubForElmCmd<data.SuggestionId>;
   readonly getSuggestionNoCache: SubForElmCmd<data.SuggestionId>;
 

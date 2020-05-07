@@ -32,6 +32,7 @@ module CommonUi exposing
 import Css
 import Data
 import Data.LogInState
+import Data.Resource
 import Data.TimeZoneAndName
 import Data.UrlData
 import Html.Styled
@@ -578,51 +579,56 @@ plusIcon =
         )
 
 
-userView : Message.SubModel -> Data.UserId -> Ui.Panel message
-userView subModel userId =
+userView : Message.SubModel -> Data.Resource.User -> Ui.Panel message
+userView subModel userModel =
+    case userModel of
+        Data.Resource.Loading (Data.UserId userIdAsString) ->
+            normalText 16 ("userId=" ++ userIdAsString)
+
+        Data.Resource.Loaded userId userSnapshot ->
+            userFoundView subModel userId userSnapshot
+
+        Data.Resource.NotFound _ ->
+            userNotFoundView
+
+
+userFoundView : Message.SubModel -> Data.UserId -> Data.UserSnapshot -> Ui.Panel message
+userFoundView subModel userId userSnapshot =
     let
         (Data.UserId userIdAsString) =
             userId
     in
-    case Message.getUserSnapshot userId subModel of
-        Just (Just userSnapshot) ->
-            sameLanguageLink
-                Ui.stretch
-                Ui.auto
-                [ Ui.backgroundColor (Css.rgb 20 20 20), Ui.padding 8 ]
-                subModel
-                (Data.LocationUser userId)
-                (Ui.row
-                    Ui.stretch
-                    Ui.auto
-                    [ Ui.gap 8 ]
-                    [ case Message.getImageBlobUrl userSnapshot.imageHash subModel of
-                        Just blobUrl ->
-                            Ui.bitmapImage
-                                (Ui.fix 24)
-                                (Ui.fix 24)
-                                [ Ui.borderRadius (Ui.BorderRadiusPercent 50)
-                                ]
-                                (Ui.BitmapImageAttributes
-                                    { blobUrl = blobUrl
-                                    , fitStyle = Ui.Contain
-                                    , alternativeText = userSnapshot.name ++ "の画像"
-                                    , rendering = Ui.ImageRenderingAuto
-                                    }
-                                )
+    sameLanguageLink
+        Ui.stretch
+        Ui.auto
+        [ Ui.backgroundColor (Css.rgb 20 20 20), Ui.padding 8 ]
+        subModel
+        (Data.LocationUser userId)
+        (Ui.row
+            Ui.stretch
+            Ui.auto
+            [ Ui.gap 8 ]
+            [ case Message.getImageBlobUrl userSnapshot.imageHash subModel of
+                Just blobUrl ->
+                    Ui.bitmapImage
+                        (Ui.fix 24)
+                        (Ui.fix 24)
+                        [ Ui.borderRadius (Ui.BorderRadiusPercent 50)
+                        ]
+                        (Ui.BitmapImageAttributes
+                            { blobUrl = blobUrl
+                            , fitStyle = Ui.Contain
+                            , alternativeText = userSnapshot.name ++ "の画像"
+                            , rendering = Ui.ImageRenderingAuto
+                            }
+                        )
 
-                        Nothing ->
-                            Ui.empty (Ui.fix 24) (Ui.fix 24) []
-                    , normalText 16 userSnapshot.name
-                    , subText userIdAsString
-                    ]
-                )
-
-        Just Nothing ->
-            userNotFoundView
-
-        Nothing ->
-            normalText 16 ("userId=" ++ userIdAsString)
+                Nothing ->
+                    Ui.empty (Ui.fix 24) (Ui.fix 24) []
+            , normalText 16 userSnapshot.name
+            , subText userIdAsString
+            ]
+        )
 
 
 userNotFoundView : Ui.Panel message
@@ -630,50 +636,55 @@ userNotFoundView =
     normalText 16 "不明なユーザー"
 
 
-miniUserView : Message.SubModel -> Data.UserId -> Ui.Panel message
-miniUserView subModel userId =
+miniUserView : Message.SubModel -> Data.Resource.User -> Ui.Panel message
+miniUserView subModel userModel =
+    case userModel of
+        Data.Resource.Loading (Data.UserId userIdAsString) ->
+            normalText 16 ("userId=" ++ userIdAsString)
+
+        Data.Resource.Loaded userId userSnapshot ->
+            userMiniFoundView subModel userId userSnapshot
+
+        Data.Resource.NotFound _ ->
+            userNotFoundView
+
+
+userMiniFoundView : Message.SubModel -> Data.UserId -> Data.UserSnapshot -> Ui.Panel message
+userMiniFoundView subModel userId userSnapshot =
     let
         (Data.UserId userIdAsString) =
             userId
     in
-    case Message.getUserSnapshot userId subModel of
-        Just (Just userSnapshot) ->
-            sameLanguageLink
-                Ui.auto
-                Ui.auto
-                [ Ui.backgroundColor (Css.rgb 20 20 20), Ui.padding 8 ]
-                subModel
-                (Data.LocationUser userId)
-                (Ui.row
-                    Ui.auto
-                    Ui.auto
-                    []
-                    [ case Message.getImageBlobUrl userSnapshot.imageHash subModel of
-                        Just blobUrl ->
-                            Ui.bitmapImage
-                                (Ui.fix 24)
-                                (Ui.fix 24)
-                                [ Ui.borderRadius (Ui.BorderRadiusPercent 50) ]
-                                (Ui.BitmapImageAttributes
-                                    { blobUrl = blobUrl
-                                    , fitStyle = Ui.Contain
-                                    , alternativeText = userSnapshot.name ++ "の画像"
-                                    , rendering = Ui.ImageRenderingAuto
-                                    }
-                                )
+    sameLanguageLink
+        Ui.auto
+        Ui.auto
+        [ Ui.backgroundColor (Css.rgb 20 20 20), Ui.padding 8 ]
+        subModel
+        (Data.LocationUser userId)
+        (Ui.row
+            Ui.auto
+            Ui.auto
+            []
+            [ case Message.getImageBlobUrl userSnapshot.imageHash subModel of
+                Just blobUrl ->
+                    Ui.bitmapImage
+                        (Ui.fix 24)
+                        (Ui.fix 24)
+                        [ Ui.borderRadius (Ui.BorderRadiusPercent 50) ]
+                        (Ui.BitmapImageAttributes
+                            { blobUrl = blobUrl
+                            , fitStyle = Ui.Contain
+                            , alternativeText = userSnapshot.name ++ "の画像"
+                            , rendering = Ui.ImageRenderingAuto
+                            }
+                        )
 
-                        Nothing ->
-                            Ui.empty (Ui.fix 24) (Ui.fix 24) []
-                    , normalText 16 userSnapshot.name
-                    , subText (String.slice 0 7 userIdAsString)
-                    ]
-                )
-
-        Just Nothing ->
-            userNotFoundView
-
-        Nothing ->
-            normalText 16 ("userId=" ++ userIdAsString)
+                Nothing ->
+                    Ui.empty (Ui.fix 24) (Ui.fix 24) []
+            , normalText 16 userSnapshot.name
+            , subText (String.slice 0 7 userIdAsString)
+            ]
+        )
 
 
 button : message -> String -> Ui.Panel message

@@ -3,6 +3,7 @@ module Page.Idea exposing (Message(..), Model, getIdeaId, init, update, updateBy
 import CommonUi
 import Data
 import Data.LogInState
+import Data.Resource
 import Data.TimeZoneAndName
 import Message
 import Ui
@@ -17,10 +18,30 @@ type Model
 
 type alias LoadedModel =
     { id : Data.IdeaId
-    , snapshot : Data.IdeaSnapshot
+    , snapshot : Idea
     , comment : Comment
     , fresh : Bool
     }
+
+
+type Idea
+    = Idea
+        { name : String
+        , createUser : Data.Resource.User
+        , createTime : Data.Time
+        , projectId : Data.ProjectId
+        , itemList : List IdeaItem
+        , updateTime : Data.Time
+        , getTime : Data.Time
+        }
+
+
+type IdeaItem
+    = IdeaItem
+        { createUserId : Data.Resource.User
+        , createTime : Data.Time
+        , body : Data.ItemBody
+        }
 
 
 type Comment
@@ -60,33 +81,25 @@ getIdeaId model =
 updateByCommonMessage : Message.SubModel -> Message.CommonMessage -> Model -> ( Model, Message.Command )
 updateByCommonMessage subModel message model =
     case message of
+        Message.ResponseUser user ->
+            32
+
         Message.ResponseIdea idea ->
             if idea.id == getIdeaId model then
                 case idea.snapshotMaybe of
                     Just snapshot ->
-                        if isFresh subModel snapshot then
-                            ( Loaded
-                                { id = idea.id
-                                , snapshot = snapshot
-                                , comment = Inputting ""
-                                , fresh = True
-                                }
-                            , Message.Batch
-                                (Message.GetUser snapshot.createUser
-                                    :: List.map Message.GetUser
-                                        (List.map .createUserId snapshot.itemList)
-                                )
-                            )
-
-                        else
-                            ( Loaded
-                                { id = idea.id
-                                , snapshot = snapshot
-                                , comment = Inputting ""
-                                , fresh = False
-                                }
-                            , Message.GetIdeaNoCache idea.id
-                            )
+                        let
+                            ( ideaSnapshot, command, fresh ) =
+                                ideaSnapshotToIdea subModel idea.id snapshot
+                        in
+                        ( Loaded
+                            { id = idea.id
+                            , snapshot = ideaSnapshot
+                            , comment = Inputting ""
+                            , fresh = fresh
+                            }
+                        , command
+                        )
 
                     Nothing ->
                         ( NotFound idea.id
@@ -139,9 +152,51 @@ updateByCommonMessage subModel message model =
             )
 
 
-isFresh : Message.SubModel -> Data.IdeaSnapshot -> Bool
-isFresh subModel ideaSnapshot =
-    Data.TimeZoneAndName.isFresh 5000 (Message.getNowTime subModel) ideaSnapshot.getTime
+ideaSnapshotToIdea : Message.SubModel -> Data.IdeaId -> Data.IdeaSnapshot -> ( Idea, Message.Command, Bool )
+ideaSnapshotToIdea subModel ideaId ideaSnapshot =
+    let
+        idea : Idea
+        idea =
+            Idea
+                { name = ideaSnapshot.name
+                , createUser = CommonUi.Loading ideaSnapshot.createUser
+                , createTime = ideaSnapshot.createTime
+                , projectId = ideaSnapshot.projectId
+                , itemList =
+                    List.map
+                        (\item ->
+                            IdeaItem
+                                { createUserId = CommonUi.Loading item.createUserId
+                                , createTime = item.createTime
+                                , body = item.body
+                                }
+                        )
+                        ideaSnapshot.itemList
+                , updateTime = ideaSnapshot.updateTime
+                , getTime = ideaSnapshot.getTime
+                }
+
+        fresh : Bool
+        fresh =
+            isFresh subModel idea
+    in
+    ( idea
+    , if fresh then
+        Message.Batch
+            (Message.GetUser ideaSnapshot.createUser
+                :: List.map Message.GetUser
+                    (List.map .createUserId ideaSnapshot.itemList)
+            )
+
+      else
+        Message.GetIdeaNoCache ideaId
+    , fresh
+    )
+
+
+isFresh : Message.SubModel -> Idea -> Bool
+isFresh subModel (Idea { getTime }) =
+    Data.TimeZoneAndName.isFresh 5000 (Message.getNowTime subModel) getTime
 
 
 update : Message -> Model -> ( Model, Message.Command )

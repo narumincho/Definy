@@ -1,4 +1,4 @@
-module Message exposing (Command(..), CommonCommand(..), CommonMessage(..), SubModel, WindowSize, addImageBlobUrl, addUserSnapshot, from, getClientMode, getImageBlobUrl, getLanguage, getLogInState, getNowTime, getTimeZoneAndNameMaybe, getUserSnapshot, getWindowSize, setClientMode, setLanguageAndClientMode, setLogInState, setNowTime, setTimeZoneAndName, setWindowSize, urlDataSameLanguageClientMode)
+module Message exposing (Command(..), CommonCommand(..), CommonMessage(..), SubModel, WindowSize, addImageBlobUrl, from, getClientMode, getImageBlobUrl, getLanguage, getLogInState, getNowTime, getTimeZoneAndNameMaybe, getWindowSize, setClientMode, setLanguageAndClientMode, setLogInState, setNowTime, setTimeZoneAndName, setWindowSize, urlDataSameLanguageClientMode)
 
 import Data
 import Data.LogInState
@@ -10,7 +10,8 @@ import Time
 {-| 各ページの共通のレスポンス Message
 -}
 type CommonMessage
-    = ResponseProject Data.ProjectResponse
+    = ResponseUser Data.UserResponse
+    | ResponseProject Data.ProjectResponse
     | ResponseIdea Data.IdeaResponse
     | ResponseSuggestion Data.SuggestionResponse
     | ResponseAddSuggestion (Maybe Data.SuggestionSnapshotAndId)
@@ -41,7 +42,6 @@ type SubModel
         , language : Data.Language
         , clientMode : Data.ClientMode
         , imageFileBlobDict : Dict.Dict String String
-        , userSnapshotDict : Dict.Dict String (Maybe Data.UserSnapshot)
         , timeZoneAndNameMaybe : Maybe Data.TimeZoneAndName.TimeZoneAndName
         , nowTime : Time.Posix
         , windowSize : WindowSize
@@ -69,7 +69,6 @@ from record =
         , language = record.language
         , clientMode = record.clientMode
         , imageFileBlobDict = Dict.empty
-        , userSnapshotDict = Dict.empty
         , timeZoneAndNameMaybe = record.timeZoneAndNameMaybe
         , nowTime = record.nowTime
         , windowSize = record.windowSize
@@ -114,12 +113,6 @@ addImageBlobUrl (Data.ImageToken hash) blobUrl (SubModel record) =
         { record | imageFileBlobDict = Dict.insert hash blobUrl record.imageFileBlobDict }
 
 
-addUserSnapshot : Maybe Data.UserSnapshot -> Data.UserId -> SubModel -> SubModel
-addUserSnapshot userSnapshotMaybe (Data.UserId userId) (SubModel record) =
-    SubModel
-        { record | userSnapshotDict = Dict.insert userId userSnapshotMaybe record.userSnapshotDict }
-
-
 getTimeZoneAndNameMaybe : SubModel -> Maybe Data.TimeZoneAndName.TimeZoneAndName
 getTimeZoneAndNameMaybe (SubModel record) =
     record.timeZoneAndNameMaybe
@@ -153,15 +146,6 @@ setWindowSize windowSize (SubModel record) =
 getImageBlobUrl : Data.ImageToken -> SubModel -> Maybe String
 getImageBlobUrl (Data.ImageToken hash) (SubModel record) =
     Dict.get hash record.imageFileBlobDict
-
-
-{-| Nothing → サーバーに問い合わせ中
-Just Nothing → ユーザーが存在しなかった
-Just (Just a) → ユーザーが存在する
--}
-getUserSnapshot : Data.UserId -> SubModel -> Maybe (Maybe Data.UserSnapshot)
-getUserSnapshot (Data.UserId userId) (SubModel record) =
-    Dict.get userId record.userSnapshotDict
 
 
 {-| SubModelからClientModeとLanguageを読んで場所を加えたURL Dataを作る
