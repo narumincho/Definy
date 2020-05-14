@@ -649,7 +649,6 @@ domDataToHtml gridCell alignmentOrStretch (DomData domData) (Panel record) =
                     [ alignmentOrStretchToCssStyle
                         record.width
                         record.height
-                        record.style
                         alignmentOrStretch
                     , gridCellToCssStyle gridCell
                     , Css.batch
@@ -824,8 +823,8 @@ linkToDomData (LinkAttributes record) =
         { node = Html.Styled.a
         , style = Css.batch []
         , attributes =
-            [ Html.Styled.Attributes.href (Url.toString record.url) ]
-                ++ (case record.id of
+            Html.Styled.Attributes.href (Url.toString record.url)
+                :: (case record.id of
                         Just idAsString ->
                             [ Html.Styled.Attributes.id idAsString ]
 
@@ -1016,8 +1015,8 @@ styleComputedToCssStyle width height isButtonElement (StyleComputed record) =
             [ Css.width (Css.px (toFloat px)) ]
 
         Stretch maxSizeMaybe ->
-            [ Css.width (Css.pct 100) ]
-                ++ (case maxSizeMaybe of
+            Css.width (Css.pct 100)
+                :: (case maxSizeMaybe of
                         Just maxSize ->
                             [ Css.maxWidth (Css.px (toFloat maxSize)) ]
 
@@ -1032,8 +1031,8 @@ styleComputedToCssStyle width height isButtonElement (StyleComputed record) =
             [ Css.height (Css.px (toFloat px)) ]
 
         Stretch maxSizeMaybe ->
-            [ Css.height (Css.pct 100) ]
-                ++ (case maxSizeMaybe of
+            Css.height (Css.pct 100)
+                :: (case maxSizeMaybe of
                         Just maxSize ->
                             [ Css.maxHeight (Css.px (toFloat maxSize)) ]
 
@@ -1297,8 +1296,8 @@ type AlignmentOrStretch
     | StretchStretch
 
 
-alignmentOrStretchToCssStyle : Size -> Size -> StyleComputed -> AlignmentOrStretch -> Css.Style
-alignmentOrStretchToCssStyle width height (StyleComputed style) alignmentOrStretch =
+alignmentOrStretchToCssStyle : Size -> Size -> AlignmentOrStretch -> Css.Style
+alignmentOrStretchToCssStyle width height alignmentOrStretch =
     Css.batch
         (case alignmentOrStretch of
             Alignment ( x, y ) ->

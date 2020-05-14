@@ -100,7 +100,7 @@ module Data.Label exposing
     , toSmallString
     )
 
-import Utility.ListExtra
+import Utility
 
 
 {-| あらゆるところでものを識別するために使うラベル
@@ -885,17 +885,22 @@ type Digits
 
 fromString : String -> Maybe Label
 fromString string =
-    case String.uncons string of
-        Just ( head, others ) ->
-            case ( headFromChar head, others |> String.toList |> Utility.ListExtra.takeAllWithFilter othersFromChar ) of
-                ( Just h, Just o ) ->
-                    Just (Label h o)
+    String.uncons string
+        |> Maybe.andThen
+            (\( head, others ) ->
+                case
+                    ( headFromChar head
+                    , others
+                        |> String.toList
+                        |> Utility.takeAllWithFilter othersFromChar
+                    )
+                of
+                    ( Just h, Just o ) ->
+                        Just (Label h o)
 
-                ( _, _ ) ->
-                    Nothing
-
-        Nothing ->
-            Nothing
+                    ( _, _ ) ->
+                        Nothing
+            )
 
 
 headFromChar : Char -> Maybe Head

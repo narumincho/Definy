@@ -1387,11 +1387,7 @@ subscriptions model =
                     Ok ideaList ->
                         CommonMessage (Message.ResponseIdeaListByProjectId ideaList)
 
-                    Err error ->
-                        let
-                            _ =
-                                Debug.log "error" (Json.Decode.errorToString error)
-                        in
+                    Err _ ->
                         NoOperation
             )
          ]

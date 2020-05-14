@@ -75,7 +75,7 @@ updateByCommonMessage subModel message model =
                                 , projectSnapshot = Nothing
                                 }
                             , Message.Batch
-                                (Message.GetUser snapshot.createUser
+                                (Message.GetUser snapshot.createUserId
                                     :: List.map Message.GetUser
                                         (List.map .createUserId snapshot.itemList)
                                     ++ [ Message.GetProject snapshot.projectId ]
@@ -284,7 +284,7 @@ mainView subModel loadedModel =
                 "最新のデータを取得中"
             )
          , CommonUi.table
-            [ ( "いいだしっぺ", CommonUi.userView subModel loadedModel.snapshot.createUser )
+            [ ( "いいだしっぺ", CommonUi.userView subModel loadedModel.snapshot.createUserId )
             , ( "作成日時", CommonUi.timeView subModel loadedModel.snapshot.createTime )
             , ( "更新日時", CommonUi.timeView subModel loadedModel.snapshot.updateTime )
             , ( "取得日時", CommonUi.timeView subModel loadedModel.snapshot.getTime )

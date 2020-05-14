@@ -1113,8 +1113,8 @@ sideBarText text isSelect =
     Ui.text
         Ui.stretch
         Ui.auto
-        ([ Ui.padding 8 ]
-            ++ (if isSelect then
+        (Ui.padding 8
+            :: (if isSelect then
                     [ sideBarSelectStyle ]
 
                 else

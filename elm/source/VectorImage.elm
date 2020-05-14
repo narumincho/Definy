@@ -286,7 +286,7 @@ strokeStyleToSvgAttributes strokeStyle =
 -}
 type FillStyle
     = FillNone
-    | FillWithColor { color : Css.Color }
+    | FillWithColor Css.Color
 
 
 {-| 塗りつぶさない
@@ -299,9 +299,8 @@ fillNone =
 {-| 単色で塗りつぶす
 -}
 fillColor : Css.Color -> FillStyle
-fillColor color =
+fillColor =
     FillWithColor
-        { color = color }
 
 
 {-| 塗りつぶしのスタイルをSvgの属性に変換
@@ -312,7 +311,7 @@ fillStyleToSvgAttributes fillStyle =
         FillNone ->
             [ Sa.fill "none" ]
 
-        FillWithColor { color } ->
+        FillWithColor color ->
             [ Sa.fill color.value ]
 
 

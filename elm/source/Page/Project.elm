@@ -59,7 +59,7 @@ updateByCommonMessage message model =
                         , Message.Batch
                             [ Message.GetBlobUrl projectSnapshot.imageHash
                             , Message.GetBlobUrl projectSnapshot.iconHash
-                            , Message.GetUser projectSnapshot.createUser
+                            , Message.GetUser projectSnapshot.createUserId
                             , Message.GetIdeaListByProjectId (getProjectId model)
                             ]
                         )
@@ -162,7 +162,7 @@ normalView subModel loadedModel =
         [ CommonUi.subText projectIdAsString
         , projectNameView subModel loadedModel.snapshot.iconHash loadedModel.snapshot.name
         , imageView subModel loadedModel.snapshot.imageHash loadedModel.snapshot.name
-        , createUserView subModel loadedModel.snapshot.createUser
+        , createUserView subModel loadedModel.snapshot.createUserId
         , createTimeView subModel loadedModel.snapshot.createTime
         , updateTimeView subModel loadedModel.snapshot.updateTime
         , getTimeView subModel loadedModel.snapshot.getTime
