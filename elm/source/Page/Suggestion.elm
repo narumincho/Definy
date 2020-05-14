@@ -33,10 +33,6 @@ type Select
         { index : Int
         , rawText : String
         }
-    | SelectNewTypeNameInput
-        { index : Int
-        , rawText : String
-        }
     | SelectPartArea
 
 
@@ -85,9 +81,6 @@ getBrowserUiState model =
                     Message.NotFocus
 
                 SelectTypePartNameInput _ ->
-                    Message.FocusInput
-
-                SelectNewTypeNameInput _ ->
                     Message.FocusInput
 
                 SelectPartArea ->
@@ -196,21 +189,6 @@ changeSelect newSelect (LoadedModel record) =
             , Message.FocusElement (selectToFocusId newSelect)
             )
 
-        SelectNewTypeNameInput indexAndText ->
-            ( Loaded
-                (LoadedModel
-                    { record
-                        | select = newSelect
-                        , typePartList =
-                            Utility.setAt
-                                indexAndText.index
-                                (TypePart indexAndText.rawText)
-                                record.typePartList
-                    }
-                )
-            , Message.FocusElement (selectToFocusId newSelect)
-            )
-
         _ ->
             ( Loaded
                 (LoadedModel
@@ -282,9 +260,6 @@ selectFirstChild typePartList select =
         SelectTypePartNameInput record ->
             SelectTypePartNameInput record
 
-        SelectNewTypeNameInput record ->
-            SelectNewTypeNameInput record
-
         SelectPartArea ->
             SelectPartArea
 
@@ -304,9 +279,6 @@ selectParent select =
         SelectTypePartNameInput record ->
             SelectTypePartName record.index
 
-        SelectNewTypeNameInput record ->
-            SelectTypePartArea
-
         SelectPartArea ->
             SelectPartArea
 
@@ -317,12 +289,16 @@ newElement (LoadedModel record) =
         SelectTypePartArea ->
             let
                 select =
-                    SelectNewTypeNameInput
+                    SelectTypePartNameInput
                         { index = List.length record.typePartList
                         , rawText = ""
                         }
             in
-            ( LoadedModel { record | select = select }
+            ( LoadedModel
+                { record
+                    | select = select
+                    , typePartList = record.typePartList ++ [ TypePart "new" ]
+                }
             , Message.FocusElement (selectToFocusId select)
             )
 
@@ -361,10 +337,6 @@ update message model =
                             case record.select of
                                 SelectTypePartNameInput indexAndText ->
                                     SelectTypePartNameInput
-                                        { indexAndText | rawText = text }
-
-                                SelectNewTypeNameInput indexAndText ->
-                                    SelectNewTypeNameInput
                                         { indexAndText | rawText = text }
 
                                 _ ->
@@ -456,7 +428,7 @@ typePartAreaView subModel typeNameList select =
         , Ui.padding 7
         , elementBorderStyle (select == SelectTypePartArea)
         ]
-        [ CommonUi.stretchText 24
+        [ CommonUi.stretchText 16
             (case Message.getLanguage subModel of
                 Data.LanguageEnglish ->
                     "TypePart"
@@ -509,14 +481,28 @@ typePartView select index typePart =
                         False
                 )
             ]
-            [ CommonUi.stretchText 16
-                (case typePart of
-                    TypePart name ->
-                        name
+            [ Ui.row
+                Ui.stretch
+                (Ui.fix 18)
+                [ elementBorderStyle
+                    (case select of
+                        SelectTypePartNameInput indexAndRowText ->
+                            indexAndRowText.index == index
 
-                    RequestName name ->
-                        name ++ "の変換を求めています"
-                )
+                        _ ->
+                            False
+                    )
+                ]
+                [ CommonUi.normalText 16
+                    (case typePart of
+                        TypePart name ->
+                            name
+
+                        RequestName name ->
+                            name ++ "の変換を求めています"
+                    )
+                , Ui.empty Ui.stretch Ui.auto []
+                ]
             ]
         ]
 
@@ -655,9 +641,6 @@ inputPanel select =
             SelectTypePartNameInput _ ->
                 [ candidatesView ]
 
-            SelectNewTypeNameInput _ ->
-                [ candidatesView ]
-
             SelectPartArea ->
                 [ CommonUi.stretchText 16 "パーツ全体を選択している" ]
         )
@@ -703,9 +686,6 @@ selectToFocusId select =
             "type-part-" ++ String.fromInt int ++ "-name"
 
         SelectTypePartNameInput _ ->
-            inputId
-
-        SelectNewTypeNameInput _ ->
             inputId
 
         SelectPartArea ->
