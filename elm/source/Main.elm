@@ -1445,5 +1445,17 @@ keyToCommonMessage browserUiState key =
         ( Message.NotFocus, Data.Key.KeyN ) ->
             Just Message.NewElement
 
+        ( Message.NotFocus, Data.Key.Digit1 ) ->
+            Just Message.Command1
+
+        ( Message.NotFocus, Data.Key.Digit2 ) ->
+            Just Message.Command2
+
+        ( Message.NotFocus, Data.Key.Digit3 ) ->
+            Just Message.Command3
+
+        ( Message.NotFocus, Data.Key.Digit4 ) ->
+            Just Message.Command4
+
         _ ->
             Nothing

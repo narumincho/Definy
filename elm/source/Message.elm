@@ -29,6 +29,10 @@ type CommonMessage
     | SelectParent
     | SelectRoot
     | NewElement
+    | Command1
+    | Command2
+    | Command3
+    | Command4
 
 
 {-| 各ページに渡すべきModel

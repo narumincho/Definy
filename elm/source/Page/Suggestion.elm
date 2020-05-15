@@ -177,6 +177,12 @@ updateByCommonMessage commonMessage model =
         ( Message.NewElement, Loaded loadedModel ) ->
             newElement loadedModel |> Tuple.mapFirst Loaded
 
+        ( Message.Command1, Loaded loadedModel ) ->
+            command1 loadedModel
+
+        ( Message.Command2, Loaded loadedModel ) ->
+            command2 loadedModel
+
         _ ->
             ( model
             , Message.None
@@ -367,6 +373,56 @@ newElement (LoadedModel record) =
 
         _ ->
             ( LoadedModel record
+            , Message.None
+            )
+
+
+command1 : LoadedModel -> ( Model, Message.Command )
+command1 (LoadedModel record) =
+    case record.select of
+        SelectTypePartBody index ->
+            ( Loaded
+                (LoadedModel
+                    { record
+                        | typePartList =
+                            Utility.mapAt
+                                index
+                                (\(TypePart typePart) ->
+                                    TypePart { typePart | body = Just (Data.TypePartBodySum []) }
+                                )
+                                record.typePartList
+                    }
+                )
+            , Message.None
+            )
+
+        _ ->
+            ( Loaded (LoadedModel record)
+            , Message.None
+            )
+
+
+command2 : LoadedModel -> ( Model, Message.Command )
+command2 (LoadedModel record) =
+    case record.select of
+        SelectTypePartBody index ->
+            ( Loaded
+                (LoadedModel
+                    { record
+                        | typePartList =
+                            Utility.mapAt
+                                index
+                                (\(TypePart typePart) ->
+                                    TypePart { typePart | body = Just (Data.TypePartBodyProduct []) }
+                                )
+                                record.typePartList
+                    }
+                )
+            , Message.None
+            )
+
+        _ ->
+            ( Loaded (LoadedModel record)
             , Message.None
             )
 
@@ -588,7 +644,24 @@ typePartBodyView select index (TypePart record) =
                     False
             )
         ]
-        [ CommonUi.normalText 16 "型の本体 直積か直和" ]
+        [ CommonUi.normalText 16
+            (case record.body of
+                Just (Data.TypePartBodySum _) ->
+                    "直和"
+
+                Just (Data.TypePartBodyProduct _) ->
+                    "直積"
+
+                Just (Data.TypePartBodyKernel Data.TypePartBodyKernelInt32) ->
+                    "Int32"
+
+                Just (Data.TypePartBodyKernel Data.TypePartBodyKernelList) ->
+                    "List a"
+
+                Nothing ->
+                    "直和か直積か決めていない"
+            )
+        ]
 
 
 partAreaView : Message.SubModel -> Select -> Ui.Panel Message
@@ -729,7 +802,7 @@ inputPanel select =
                 [ CommonUi.stretchText 16 (String.fromInt index ++ "番目の型パーツの説明") ]
 
             SelectTypePartBody index ->
-                [ CommonUi.stretchText 16 (String.fromInt index ++ "番目の型パーツの中身") ]
+                [ CommonUi.stretchText 16 (String.fromInt index ++ "番目の型パーツの中身 [1] で直和,[2]で直積") ]
 
             SelectPartArea ->
                 [ CommonUi.stretchText 16 "パーツ全体を選択している" ]
