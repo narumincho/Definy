@@ -1,107 +1,7 @@
 module Data.Label exposing
-    ( Head
-    , Label
-    , Others
-    , from
-    , fromHead
-    , fromString
-    , ha
-    , hb
-    , hc
-    , hd
-    , he
-    , hf
-    , hg
-    , hh
-    , hi
-    , hj
-    , hk
-    , hl
-    , hm
-    , hn
-    , ho
-    , hp
-    , hq
-    , hr
-    , hs
-    , ht
-    , hu
-    , hv
-    , hw
-    , hx
-    , hy
-    , hz
-    , o0
-    , o1
-    , o2
-    , o3
-    , o4
-    , o5
-    , o6
-    , o7
-    , o8
-    , o9
-    , oA
-    , oB
-    , oC
-    , oD
-    , oE
-    , oF
-    , oG
-    , oH
-    , oI
-    , oJ
-    , oK
-    , oL
-    , oM
-    , oN
-    , oO
-    , oP
-    , oQ
-    , oR
-    , oS
-    , oT
-    , oU
-    , oV
-    , oW
-    , oX
-    , oY
-    , oZ
-    , oa
-    , ob
-    , oc
-    , od
-    , oe
-    , of_
-    , og
-    , oh
-    , oi
-    , oj
-    , ok
-    , ol
-    , om
-    , on
-    , oo
-    , op
-    , oq
-    , or
-    , os
-    , ot
-    , otherToHead
-    , othersToChar
-    , ou
-    , ov
-    , ow
-    , ox
-    , oy
-    , oz
-    , push
+    ( fromString
     , toCapitalString
-    , toSmallString
     )
-
-import Utility
-
 
 {-| あらゆるところでものを識別するために使うラベル
 先頭1文字は、大文字か小文字のアルファベット(a-z/A-Z)
@@ -128,1132 +28,283 @@ abcは |000010|000000|000001|000010|
 と表現できる
 
 -}
-type Label
-    = Label Head (List Others)
 
 
-from : Head -> List Others -> Label
-from head othersList =
-    Label head (List.take 63 othersList)
+fromString : String -> String
+fromString text =
+    (String.foldl
+        fromStringLoop
+        { isFirstChar = True, isBeforeSpace = False, text = "" }
+        text
+    ).text
 
 
-fromHead : Head -> Label
-fromHead head =
-    Label head []
+type alias LoopState =
+    { isFirstChar : Bool, isBeforeSpace : Bool, text : String }
 
 
-push : Others -> Label -> Label
-push others (Label head othersList) =
-    if List.length othersList < 63 then
-        Label head (othersList ++ [ others ])
+fromStringLoop : Char -> LoopState -> LoopState
+fromStringLoop char state =
+    if state.isFirstChar then
+        case toHeadSimpleChar char of
+            Just c ->
+                { isFirstChar = False
+                , isBeforeSpace = False
+                , text = String.fromChar (Char.toLower c)
+                }
+
+            Nothing ->
+                { isFirstChar = True
+                , isBeforeSpace = False
+                , text = ""
+                }
 
     else
-        Label head othersList
+        case toOthersSimpleChar char of
+            Just c ->
+                { isFirstChar = False
+                , isBeforeSpace = False
+                , text =
+                    state.text
+                        ++ String.fromChar
+                            (if state.isBeforeSpace then
+                                Char.toUpper c
 
+                             else
+                                c
+                            )
+                }
 
-toCapitalString : Label -> String
-toCapitalString (Label (Head head) others) =
-    String.fromList
-        (alphabetToCapitalChar head
-            :: (others |> List.map othersToChar)
-        )
+            Nothing ->
+                { isFirstChar = False
+                , isBeforeSpace = True
+                , text = state.text
+                }
 
 
-toSmallString : Label -> String
-toSmallString (Label (Head head) others) =
-    String.fromList
-        (alphabetToSmallChar head
-            :: (others |> List.map othersToChar)
-        )
+{-| [a-z] のシンプルな文字に変換する. 失敗したらNothing
+-}
+toHeadSimpleChar : Char -> Maybe Char
+toHeadSimpleChar char =
+    let
+        f =
+            String.contains (String.fromChar char)
+    in
+    if f "aａ" then
+        Just 'a'
 
+    else if f "bｂ" then
+        Just 'b'
 
-othersToChar : Others -> Char
-othersToChar others =
-    case others of
-        Capital alphabet ->
-            alphabetToCapitalChar alphabet
+    else if f "cｃ" then
+        Just 'c'
 
-        Small alphabet ->
-            alphabetToSmallChar alphabet
+    else if f "dｄ" then
+        Just 'd'
 
-        Digits digits ->
-            digitsToChar digits
+    else if f "eｅ" then
+        Just 'e'
 
+    else if f "fｆ" then
+        Just 'f'
 
-alphabetToCapitalChar : Alphabet -> Char
-alphabetToCapitalChar alphabet =
-    case alphabet of
-        A ->
-            'A'
+    else if f "gｇ" then
+        Just 'g'
 
-        B ->
-            'B'
+    else if f "hｈ" then
+        Just 'h'
 
-        C ->
-            'C'
+    else if f "iｉ" then
+        Just 'i'
 
-        D ->
-            'D'
+    else if f "jｊ" then
+        Just 'j'
 
-        E ->
-            'E'
+    else if f "kｋ" then
+        Just 'k'
 
-        F ->
-            'F'
+    else if f "lｌ" then
+        Just 'l'
 
-        G ->
-            'G'
+    else if f "mｍ" then
+        Just 'm'
 
-        H ->
-            'H'
+    else if f "nｎ" then
+        Just 'n'
 
-        I ->
-            'I'
+    else if f "oｏ" then
+        Just 'o'
 
-        J ->
-            'J'
+    else if f "pｐ" then
+        Just 'p'
 
-        K ->
-            'K'
+    else if f "qｑ" then
+        Just 'q'
 
-        L ->
-            'L'
+    else if f "rｒ" then
+        Just 'r'
 
-        M ->
-            'M'
+    else if f "sｓ" then
+        Just 's'
 
-        N ->
-            'N'
+    else if f "tｔ" then
+        Just 't'
 
-        O ->
-            'O'
+    else if f "uｕ" then
+        Just 'u'
 
-        P ->
-            'P'
+    else if f "vｖ" then
+        Just 'v'
 
-        Q ->
-            'Q'
+    else if f "wｗ" then
+        Just 'w'
 
-        R ->
-            'R'
+    else if f "xｘ" then
+        Just 'x'
 
-        S ->
-            'S'
+    else if f "yｙ" then
+        Just 'y'
 
-        T ->
-            'T'
+    else if f "zｚ" then
+        Just 'z'
 
-        U ->
-            'U'
+    else
+        Nothing
 
-        V ->
-            'V'
 
-        W ->
-            'W'
+toOthersSimpleChar : Char -> Maybe Char
+toOthersSimpleChar char =
+    case toHeadSimpleChar char of
+        Just c ->
+            Just c
 
-        X ->
-            'X'
+        Nothing ->
+            toCapitalAlphabetAndNumber char
 
-        Y ->
-            'Y'
 
-        Z ->
-            'Z'
+toCapitalAlphabetAndNumber : Char -> Maybe Char
+toCapitalAlphabetAndNumber char =
+    let
+        f =
+            String.contains (String.fromChar char)
+    in
+    if f "AＡ" then
+        Just 'A'
 
+    else if f "BＢ" then
+        Just 'B'
 
-alphabetToSmallChar : Alphabet -> Char
-alphabetToSmallChar alphabet =
-    case alphabet of
-        A ->
-            'a'
+    else if f "CＣ" then
+        Just 'c'
 
-        B ->
-            'b'
+    else if f "DＤ" then
+        Just 'D'
 
-        C ->
-            'c'
+    else if f "EＥ" then
+        Just 'E'
 
-        D ->
-            'd'
+    else if f "FＦ" then
+        Just 'F'
 
-        E ->
-            'e'
+    else if f "GＧ" then
+        Just 'G'
 
-        F ->
-            'f'
+    else if f "HＨ" then
+        Just 'H'
 
-        G ->
-            'g'
+    else if f "IＩ" then
+        Just 'I'
 
-        H ->
-            'h'
+    else if f "JＪ" then
+        Just 'J'
 
-        I ->
-            'i'
+    else if f "KＫ" then
+        Just 'K'
 
-        J ->
-            'j'
+    else if f "LＬ" then
+        Just 'L'
 
-        K ->
-            'k'
+    else if f "MＭ" then
+        Just 'M'
 
-        L ->
-            'l'
+    else if f "NＮ" then
+        Just 'N'
 
-        M ->
-            'm'
+    else if f "OＯ" then
+        Just 'O'
 
-        N ->
-            'n'
+    else if f "PＰ" then
+        Just 'P'
 
-        O ->
-            'o'
+    else if f "QＱ" then
+        Just 'Q'
 
-        P ->
-            'p'
+    else if f "RＲ" then
+        Just 'R'
 
-        Q ->
-            'q'
+    else if f "SＳ" then
+        Just 'S'
 
-        R ->
-            'r'
+    else if f "TＴ" then
+        Just 'T'
 
-        S ->
-            's'
+    else if f "UＵ" then
+        Just 'U'
 
-        T ->
-            't'
+    else if f "VＶ" then
+        Just 'V'
 
-        U ->
-            'u'
+    else if f "WＷ" then
+        Just 'W'
 
-        V ->
-            'v'
+    else if f "XＸ" then
+        Just 'X'
 
-        W ->
-            'w'
+    else if f "YＹ" then
+        Just 'Y'
 
-        X ->
-            'x'
+    else if f "ZＺ" then
+        Just 'Z'
 
-        Y ->
-            'y'
+    else if f "0０" then
+        Just '0'
 
-        Z ->
-            'z'
+    else if f "1１" then
+        Just '1'
 
+    else if f "2２" then
+        Just '2'
 
-digitsToChar : Digits -> Char
-digitsToChar digits =
-    case digits of
-        N0 ->
-            '0'
+    else if f "3３" then
+        Just '3'
 
-        N1 ->
-            '1'
+    else if f "4４" then
+        Just '4'
 
-        N2 ->
-            '2'
+    else if f "5５" then
+        Just '5'
 
-        N3 ->
-            '3'
+    else if f "6６" then
+        Just '6'
 
-        N4 ->
-            '4'
+    else if f "7７" then
+        Just '7'
 
-        N5 ->
-            '5'
+    else if f "8８" then
+        Just '8'
 
-        N6 ->
-            '6'
+    else if f "9９" then
+        Just '9'
 
-        N7 ->
-            '7'
+    else
+        Nothing
 
-        N8 ->
-            '8'
 
-        N9 ->
-            '9'
+toCapitalString : String -> String
+toCapitalString label =
+    case String.uncons label of
+        Just ( head, others ) ->
+            String.cons (Char.toUpper head) others
 
-
-otherToHead : Others -> Maybe Head
-otherToHead others =
-    case others of
-        Capital alphabet ->
-            Just (Head alphabet)
-
-        Small alphabet ->
-            Just (Head alphabet)
-
-        Digits _ ->
-            Nothing
-
-
-type Head
-    = Head Alphabet
-
-
-type Others
-    = Capital Alphabet
-    | Small Alphabet
-    | Digits Digits
-
-
-ha : Head
-ha =
-    Head A
-
-
-hb : Head
-hb =
-    Head B
-
-
-hc : Head
-hc =
-    Head C
-
-
-hd : Head
-hd =
-    Head D
-
-
-he : Head
-he =
-    Head E
-
-
-hf : Head
-hf =
-    Head F
-
-
-hg : Head
-hg =
-    Head G
-
-
-hh : Head
-hh =
-    Head H
-
-
-hi : Head
-hi =
-    Head I
-
-
-hj : Head
-hj =
-    Head J
-
-
-hk : Head
-hk =
-    Head K
-
-
-hl : Head
-hl =
-    Head L
-
-
-hm : Head
-hm =
-    Head M
-
-
-hn : Head
-hn =
-    Head N
-
-
-ho : Head
-ho =
-    Head O
-
-
-hp : Head
-hp =
-    Head P
-
-
-hq : Head
-hq =
-    Head Q
-
-
-hr : Head
-hr =
-    Head R
-
-
-hs : Head
-hs =
-    Head S
-
-
-ht : Head
-ht =
-    Head T
-
-
-hu : Head
-hu =
-    Head U
-
-
-hv : Head
-hv =
-    Head V
-
-
-hw : Head
-hw =
-    Head W
-
-
-hx : Head
-hx =
-    Head X
-
-
-hy : Head
-hy =
-    Head Y
-
-
-hz : Head
-hz =
-    Head Z
-
-
-oA : Others
-oA =
-    Capital A
-
-
-oB : Others
-oB =
-    Capital B
-
-
-oC : Others
-oC =
-    Capital C
-
-
-oD : Others
-oD =
-    Capital D
-
-
-oE : Others
-oE =
-    Capital E
-
-
-oF : Others
-oF =
-    Capital F
-
-
-oG : Others
-oG =
-    Capital G
-
-
-oH : Others
-oH =
-    Capital H
-
-
-oI : Others
-oI =
-    Capital I
-
-
-oJ : Others
-oJ =
-    Capital J
-
-
-oK : Others
-oK =
-    Capital K
-
-
-oL : Others
-oL =
-    Capital L
-
-
-oM : Others
-oM =
-    Capital M
-
-
-oN : Others
-oN =
-    Capital N
-
-
-oO : Others
-oO =
-    Capital O
-
-
-oP : Others
-oP =
-    Capital P
-
-
-oQ : Others
-oQ =
-    Capital Q
-
-
-oR : Others
-oR =
-    Capital R
-
-
-oS : Others
-oS =
-    Capital S
-
-
-oT : Others
-oT =
-    Capital T
-
-
-oU : Others
-oU =
-    Capital U
-
-
-oV : Others
-oV =
-    Capital V
-
-
-oW : Others
-oW =
-    Capital W
-
-
-oX : Others
-oX =
-    Capital X
-
-
-oY : Others
-oY =
-    Capital Y
-
-
-oZ : Others
-oZ =
-    Capital Z
-
-
-oa : Others
-oa =
-    Small A
-
-
-ob : Others
-ob =
-    Small B
-
-
-oc : Others
-oc =
-    Small C
-
-
-od : Others
-od =
-    Small D
-
-
-oe : Others
-oe =
-    Small E
-
-
-of_ : Others
-of_ =
-    Small F
-
-
-og : Others
-og =
-    Small G
-
-
-oh : Others
-oh =
-    Small H
-
-
-oi : Others
-oi =
-    Small I
-
-
-oj : Others
-oj =
-    Small J
-
-
-ok : Others
-ok =
-    Small K
-
-
-ol : Others
-ol =
-    Small L
-
-
-om : Others
-om =
-    Small M
-
-
-on : Others
-on =
-    Small N
-
-
-oo : Others
-oo =
-    Small O
-
-
-op : Others
-op =
-    Small P
-
-
-oq : Others
-oq =
-    Small Q
-
-
-or : Others
-or =
-    Small R
-
-
-os : Others
-os =
-    Small S
-
-
-ot : Others
-ot =
-    Small T
-
-
-ou : Others
-ou =
-    Small U
-
-
-ov : Others
-ov =
-    Small V
-
-
-ow : Others
-ow =
-    Small W
-
-
-ox : Others
-ox =
-    Small X
-
-
-oy : Others
-oy =
-    Small Y
-
-
-oz : Others
-oz =
-    Small Z
-
-
-o0 : Others
-o0 =
-    Digits N0
-
-
-o1 : Others
-o1 =
-    Digits N1
-
-
-o2 : Others
-o2 =
-    Digits N2
-
-
-o3 : Others
-o3 =
-    Digits N3
-
-
-o4 : Others
-o4 =
-    Digits N4
-
-
-o5 : Others
-o5 =
-    Digits N5
-
-
-o6 : Others
-o6 =
-    Digits N6
-
-
-o7 : Others
-o7 =
-    Digits N7
-
-
-o8 : Others
-o8 =
-    Digits N8
-
-
-o9 : Others
-o9 =
-    Digits N9
-
-
-type Alphabet
-    = A
-    | B
-    | C
-    | D
-    | E
-    | F
-    | G
-    | H
-    | I
-    | J
-    | K
-    | L
-    | M
-    | N
-    | O
-    | P
-    | Q
-    | R
-    | S
-    | T
-    | U
-    | V
-    | W
-    | X
-    | Y
-    | Z
-
-
-type Digits
-    = N0
-    | N1
-    | N2
-    | N3
-    | N4
-    | N5
-    | N6
-    | N7
-    | N8
-    | N9
-
-
-fromString : String -> Maybe Label
-fromString string =
-    String.uncons string
-        |> Maybe.andThen
-            (\( head, others ) ->
-                case
-                    ( headFromChar head
-                    , others
-                        |> String.toList
-                        |> Utility.takeAllWithFilter othersFromChar
-                    )
-                of
-                    ( Just h, Just o ) ->
-                        Just (Label h o)
-
-                    ( _, _ ) ->
-                        Nothing
-            )
-
-
-headFromChar : Char -> Maybe Head
-headFromChar char =
-    case char of
-        'a' ->
-            Just ha
-
-        'b' ->
-            Just hb
-
-        'c' ->
-            Just hc
-
-        'd' ->
-            Just hd
-
-        'e' ->
-            Just he
-
-        'f' ->
-            Just hf
-
-        'g' ->
-            Just hg
-
-        'h' ->
-            Just hh
-
-        'i' ->
-            Just hi
-
-        'j' ->
-            Just hj
-
-        'k' ->
-            Just hk
-
-        'l' ->
-            Just hl
-
-        'm' ->
-            Just hm
-
-        'n' ->
-            Just hn
-
-        'o' ->
-            Just ho
-
-        'p' ->
-            Just hp
-
-        'q' ->
-            Just hq
-
-        'r' ->
-            Just hr
-
-        's' ->
-            Just hs
-
-        't' ->
-            Just ht
-
-        'u' ->
-            Just hu
-
-        'v' ->
-            Just hv
-
-        'w' ->
-            Just hw
-
-        'x' ->
-            Just hx
-
-        'y' ->
-            Just hy
-
-        'z' ->
-            Just hz
-
-        'A' ->
-            Just ha
-
-        'B' ->
-            Just hb
-
-        'C' ->
-            Just hc
-
-        'D' ->
-            Just hd
-
-        'E' ->
-            Just he
-
-        'F' ->
-            Just hf
-
-        'G' ->
-            Just hg
-
-        'H' ->
-            Just hh
-
-        'I' ->
-            Just hi
-
-        'J' ->
-            Just hj
-
-        'K' ->
-            Just hk
-
-        'L' ->
-            Just hl
-
-        'M' ->
-            Just hm
-
-        'N' ->
-            Just hn
-
-        'O' ->
-            Just ho
-
-        'P' ->
-            Just hp
-
-        'Q' ->
-            Just hq
-
-        'R' ->
-            Just hr
-
-        'S' ->
-            Just hs
-
-        'T' ->
-            Just ht
-
-        'U' ->
-            Just hu
-
-        'V' ->
-            Just hv
-
-        'W' ->
-            Just hw
-
-        'X' ->
-            Just hx
-
-        'Y' ->
-            Just hy
-
-        'Z' ->
-            Just hz
-
-        _ ->
-            Nothing
-
-
-othersFromChar : Char -> Maybe Others
-othersFromChar char =
-    case char of
-        'a' ->
-            Just oa
-
-        'b' ->
-            Just ob
-
-        'c' ->
-            Just oc
-
-        'd' ->
-            Just od
-
-        'e' ->
-            Just oe
-
-        'f' ->
-            Just of_
-
-        'g' ->
-            Just og
-
-        'h' ->
-            Just oh
-
-        'i' ->
-            Just oi
-
-        'j' ->
-            Just oj
-
-        'k' ->
-            Just ok
-
-        'l' ->
-            Just ol
-
-        'm' ->
-            Just om
-
-        'n' ->
-            Just on
-
-        'o' ->
-            Just oo
-
-        'p' ->
-            Just op
-
-        'q' ->
-            Just oq
-
-        'r' ->
-            Just or
-
-        's' ->
-            Just os
-
-        't' ->
-            Just ot
-
-        'u' ->
-            Just ou
-
-        'v' ->
-            Just ov
-
-        'w' ->
-            Just ow
-
-        'x' ->
-            Just ox
-
-        'y' ->
-            Just oy
-
-        'z' ->
-            Just oz
-
-        'A' ->
-            Just oA
-
-        'B' ->
-            Just oB
-
-        'C' ->
-            Just oC
-
-        'D' ->
-            Just oD
-
-        'E' ->
-            Just oE
-
-        'F' ->
-            Just oF
-
-        'G' ->
-            Just oG
-
-        'H' ->
-            Just oH
-
-        'I' ->
-            Just oI
-
-        'J' ->
-            Just oJ
-
-        'K' ->
-            Just oK
-
-        'L' ->
-            Just oL
-
-        'M' ->
-            Just oM
-
-        'N' ->
-            Just oN
-
-        'O' ->
-            Just oO
-
-        'P' ->
-            Just oP
-
-        'Q' ->
-            Just oQ
-
-        'R' ->
-            Just oR
-
-        'S' ->
-            Just oS
-
-        'T' ->
-            Just oT
-
-        'U' ->
-            Just oU
-
-        'V' ->
-            Just oV
-
-        'W' ->
-            Just oW
-
-        'X' ->
-            Just oX
-
-        'Y' ->
-            Just oY
-
-        'Z' ->
-            Just oZ
-
-        '0' ->
-            Just o0
-
-        '1' ->
-            Just o1
-
-        '2' ->
-            Just o2
-
-        '3' ->
-            Just o3
-
-        '4' ->
-            Just o4
-
-        '5' ->
-            Just o5
-
-        '6' ->
-            Just o6
-
-        '7' ->
-            Just o7
-
-        '8' ->
-            Just o8
-
-        '9' ->
-            Just o9
-
-        _ ->
-            Nothing
+        Nothing ->
+            label

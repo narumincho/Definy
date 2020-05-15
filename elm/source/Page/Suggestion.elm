@@ -4,6 +4,7 @@ import Array
 import CommonUi
 import Css
 import Data
+import Data.Label
 import Message
 import Ui
 import Utility
@@ -39,8 +40,11 @@ type Select
 
 
 type TypePart
-    = RequestName String
-    | TypePart String
+    = TypePart
+        { name : String
+        , description : String
+        , body : Maybe Data.TypePartBody
+        }
 
 
 type Message
@@ -188,9 +192,16 @@ changeSelect newSelect (LoadedModel record) =
                     { record
                         | select = newSelect
                         , typePartList =
-                            Utility.setAt
+                            Utility.mapAt
                                 indexAndText.index
-                                (TypePart indexAndText.rawText)
+                                (\(TypePart typePart) ->
+                                    TypePart
+                                        { typePart
+                                            | name =
+                                                Data.Label.fromString
+                                                    indexAndText.rawText
+                                        }
+                                )
                                 record.typePartList
                     }
                 )
@@ -329,7 +340,14 @@ newElement (LoadedModel record) =
             ( LoadedModel
                 { record
                     | select = select
-                    , typePartList = record.typePartList ++ [ TypePart "new" ]
+                    , typePartList =
+                        record.typePartList
+                            ++ [ TypePart
+                                    { name = "new"
+                                    , description = ""
+                                    , body = Nothing
+                                    }
+                               ]
                 }
             , Message.FocusElement (selectToFocusId select)
             )
@@ -508,7 +526,7 @@ typePartView select index typePart =
 
 
 typePartNameView : Select -> Int -> TypePart -> Ui.Panel Message
-typePartNameView select index typePart =
+typePartNameView select index (TypePart record) =
     Ui.column
         Ui.stretch
         (Ui.fix 20)
@@ -533,21 +551,14 @@ typePartNameView select index typePart =
                         False
                 )
             ]
-            [ CommonUi.normalText 16
-                (case typePart of
-                    TypePart name ->
-                        name
-
-                    RequestName name ->
-                        name ++ "の変換を求めています"
-                )
+            [ CommonUi.normalText 16 record.name
             , Ui.empty Ui.stretch Ui.auto []
             ]
         ]
 
 
 typePartDescriptionView : Select -> Int -> TypePart -> Ui.Panel Message
-typePartDescriptionView select index typePart =
+typePartDescriptionView select index (TypePart record) =
     Ui.column
         Ui.stretch
         (Ui.fix 20)
@@ -560,10 +571,11 @@ typePartDescriptionView select index typePart =
                     False
             )
         ]
-        [ CommonUi.normalText 16 "型の説明" ]
+        [ CommonUi.normalText 16 record.description ]
+
 
 typePartBodyView : Select -> Int -> TypePart -> Ui.Panel Message
-typePartBodyView select index typePart =
+typePartBodyView select index (TypePart record) =
     Ui.column
         Ui.stretch
         (Ui.fix 20)
