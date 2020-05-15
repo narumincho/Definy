@@ -33,6 +33,8 @@ type Select
         { index : Int
         , rawText : String
         }
+    | SelectTypePartDescription Int
+    | SelectTypePartBody Int
     | SelectPartArea
 
 
@@ -82,6 +84,12 @@ getBrowserUiState model =
 
                 SelectTypePartNameInput _ ->
                     Message.FocusInput
+
+                SelectTypePartDescription _ ->
+                    Message.NotFocus
+
+                SelectTypePartBody _ ->
+                    Message.NotFocus
 
                 SelectPartArea ->
                     Message.NotFocus
@@ -213,6 +221,12 @@ selectUp typePartList select =
             else
                 SelectTypePart (int - 1)
 
+        SelectTypePartDescription index ->
+            SelectTypePartName index
+
+        SelectTypePartBody index ->
+            SelectTypePartDescription index
+
         SelectPartArea ->
             SelectTypePartArea
 
@@ -232,6 +246,12 @@ selectDown typePartList select =
 
             else
                 SelectTypePart (int + 1)
+
+        SelectTypePartName index ->
+            SelectTypePartDescription index
+
+        SelectTypePartDescription index ->
+            SelectTypePartBody index
 
         SelectPartArea ->
             SelectTypePartArea
@@ -260,6 +280,12 @@ selectFirstChild typePartList select =
         SelectTypePartNameInput record ->
             SelectTypePartNameInput record
 
+        SelectTypePartDescription index ->
+            SelectTypePartDescription index
+
+        SelectTypePartBody index ->
+            SelectTypePartBody index
+
         SelectPartArea ->
             SelectPartArea
 
@@ -278,6 +304,12 @@ selectParent select =
 
         SelectTypePartNameInput record ->
             SelectTypePartName record.index
+
+        SelectTypePartDescription index ->
+            SelectTypePart index
+
+        SelectTypePartBody index ->
+            SelectTypePart index
 
         SelectPartArea ->
             SelectPartArea
@@ -452,11 +484,11 @@ typePartListView typePartList select =
         (List.indexedMap (typePartView select) typePartList)
 
 
-typePartView : Select -> Int -> TypePart -> Ui.Panel message
+typePartView : Select -> Int -> TypePart -> Ui.Panel Message
 typePartView select index typePart =
     Ui.column
         Ui.stretch
-        (Ui.fix 40)
+        (Ui.fix 70)
         [ Ui.focusAble (selectToFocusId (SelectTypePart index))
         , elementBackgroundStyle
         , Ui.padding 4
@@ -469,42 +501,82 @@ typePartView select index typePart =
                     False
             )
         ]
-        [ Ui.column
+        [ typePartNameView select index typePart
+        , typePartDescriptionView select index typePart
+        , typePartBodyView select index typePart
+        ]
+
+
+typePartNameView : Select -> Int -> TypePart -> Ui.Panel Message
+typePartNameView select index typePart =
+    Ui.column
+        Ui.stretch
+        (Ui.fix 20)
+        [ elementBorderStyle
+            (case select of
+                SelectTypePartName int ->
+                    int == index
+
+                _ ->
+                    False
+            )
+        ]
+        [ Ui.row
             Ui.stretch
-            (Ui.fix 20)
+            (Ui.fix 18)
             [ elementBorderStyle
                 (case select of
-                    SelectTypePartName int ->
-                        int == index
+                    SelectTypePartNameInput indexAndRowText ->
+                        indexAndRowText.index == index
 
                     _ ->
                         False
                 )
             ]
-            [ Ui.row
-                Ui.stretch
-                (Ui.fix 18)
-                [ elementBorderStyle
-                    (case select of
-                        SelectTypePartNameInput indexAndRowText ->
-                            indexAndRowText.index == index
+            [ CommonUi.normalText 16
+                (case typePart of
+                    TypePart name ->
+                        name
 
-                        _ ->
-                            False
-                    )
-                ]
-                [ CommonUi.normalText 16
-                    (case typePart of
-                        TypePart name ->
-                            name
-
-                        RequestName name ->
-                            name ++ "の変換を求めています"
-                    )
-                , Ui.empty Ui.stretch Ui.auto []
-                ]
+                    RequestName name ->
+                        name ++ "の変換を求めています"
+                )
+            , Ui.empty Ui.stretch Ui.auto []
             ]
         ]
+
+
+typePartDescriptionView : Select -> Int -> TypePart -> Ui.Panel Message
+typePartDescriptionView select index typePart =
+    Ui.column
+        Ui.stretch
+        (Ui.fix 20)
+        [ elementBorderStyle
+            (case select of
+                SelectTypePartDescription int ->
+                    int == index
+
+                _ ->
+                    False
+            )
+        ]
+        [ CommonUi.normalText 16 "型の説明" ]
+
+typePartBodyView : Select -> Int -> TypePart -> Ui.Panel Message
+typePartBodyView select index typePart =
+    Ui.column
+        Ui.stretch
+        (Ui.fix 20)
+        [ elementBorderStyle
+            (case select of
+                SelectTypePartBody int ->
+                    int == index
+
+                _ ->
+                    False
+            )
+        ]
+        [ CommonUi.normalText 16 "型の本体 直積か直和" ]
 
 
 partAreaView : Message.SubModel -> Select -> Ui.Panel Message
@@ -632,14 +704,20 @@ inputPanel select =
             SelectTypePartArea ->
                 [ CommonUi.stretchText 16 "型パーツ全体を選択している" ]
 
-            SelectTypePart int ->
-                [ CommonUi.stretchText 16 (String.fromInt int ++ "番目の型パーツ") ]
+            SelectTypePart index ->
+                [ CommonUi.stretchText 16 (String.fromInt index ++ "番目の型パーツ") ]
 
             SelectTypePartName int ->
                 [ CommonUi.stretchText 16 ("Eで" ++ String.fromInt int ++ "番目の型パーツの名前を変更") ]
 
             SelectTypePartNameInput _ ->
                 [ candidatesView ]
+
+            SelectTypePartDescription index ->
+                [ CommonUi.stretchText 16 (String.fromInt index ++ "番目の型パーツの説明") ]
+
+            SelectTypePartBody index ->
+                [ CommonUi.stretchText 16 (String.fromInt index ++ "番目の型パーツの中身") ]
 
             SelectPartArea ->
                 [ CommonUi.stretchText 16 "パーツ全体を選択している" ]
@@ -687,6 +765,12 @@ selectToFocusId select =
 
         SelectTypePartNameInput _ ->
             inputId
+
+        SelectTypePartDescription index ->
+            "type-part-" ++ String.fromInt index ++ "-description"
+
+        SelectTypePartBody index ->
+            "type-part-" ++ String.fromInt index ++ "-body"
 
         SelectPartArea ->
             "part-area"
