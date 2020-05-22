@@ -156,7 +156,7 @@ const init = async (): Promise<void> => {
   });
 
   app.ports.getImageBlobUrl.subscribe((imageToken) => {
-    db.getFile(database, imageToken).then((binaryInIndexDB) => {
+    db.getImage(database, imageToken).then((binaryInIndexDB) => {
       if (binaryInIndexDB !== undefined) {
         const blob = new Blob([binaryInIndexDB], { type: "image/png" });
         const blobUrl = URL.createObjectURL(blob);
@@ -173,7 +173,7 @@ const init = async (): Promise<void> => {
       ).then((pngBinary) => {
         const blob = new Blob([pngBinary], { type: "image/png" });
         const blobUrl = URL.createObjectURL(blob);
-        db.setFile(database, imageToken, pngBinary);
+        db.setImage(database, imageToken, pngBinary);
         app.ports.getImageBlobResponse.send({
           blobUrl: blobUrl,
           imageToken: imageToken,

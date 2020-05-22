@@ -138,24 +138,24 @@ export const setProject = (
 /**
  * ファイルのバイナリを読み込む
  */
-export const getFile = (
+export const getImage = (
   database: IDBDatabase | null,
-  fileHash: data.FileHash
+  imageToken: data.ImageToken
 ): Promise<undefined | Uint8Array> =>
-  get<data.FileHash, Uint8Array>(database, fileObjectStoreName, fileHash);
+  get<data.ImageToken, Uint8Array>(database, fileObjectStoreName, imageToken);
 
 /**
  * ファイルのバイナリを書き込む
  */
-export const setFile = (
+export const setImage = (
   database: IDBDatabase | null,
-  fileHash: data.FileHash,
+  imageToken: data.ImageToken,
   image: Uint8Array
 ): Promise<void> =>
-  setLow<data.FileHash, Uint8Array>(
+  setLow<data.ImageToken, Uint8Array>(
     database,
     fileObjectStoreName,
-    fileHash,
+    imageToken,
     image
   );
 
