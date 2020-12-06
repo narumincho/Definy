@@ -8,7 +8,6 @@ import { Model } from "./model";
 import { OneLineTextInput } from "./oneLineTextInput";
 import { ProjectIdEditor } from "./projectIdEditor";
 import { TypePartBodyEditor } from "./typePartBodyEditor";
-import { TypePartIdEditor } from "./typePartIdEditor";
 import { createListEditor } from "./listEditor";
 import { createMaybeEditor } from "./maybeEditor";
 import { createNoParameterTagEditor } from "./sumEditor";
@@ -146,7 +145,7 @@ const TypeParameterListEditor: Editor<
   editor: createProductEditor<d.TypeParameter>(
     {
       name: OneLineTextInput,
-      typePartId: TypePartIdEditor,
+      typePartId: (OneLineTextInput as unknown) as Editor<d.TypePartId>,
     },
     "TypeParameter"
   ),

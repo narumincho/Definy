@@ -5,29 +5,10 @@ import {
 } from "./sumEditor";
 import { Editor } from "./ui";
 import { OneLineTextInput } from "./oneLineTextInput";
-import { TypePartIdEditor } from "./typePartIdEditor";
+import { TypeEditor } from "./typeEditor";
 import { createListEditor } from "./listEditor";
 import { createMaybeEditor } from "./maybeEditor";
 import { createProductEditor } from "./productEditor";
-
-const typeEditorLoop = (): Editor<d.Type> =>
-  createProductEditor<d.Type>(
-    {
-      typePartId: TypePartIdEditor,
-      parameter: createListEditor<d.Type>({
-        isLazy: true,
-        editor: () => typeEditorLoop(),
-        initValue: {
-          typePartId: "b6fcba1c61ff2ce63ee79ee3b8b70c07" as d.TypePartId,
-          parameter: [],
-        },
-        displayName: "TypeListEditor",
-      }),
-    },
-    "TypeEditor"
-  );
-
-const TypeEditor: Editor<d.Type> = typeEditorLoop();
 
 const SumEditor: Editor<ReadonlyArray<d.Pattern>> = createListEditor<d.Pattern>(
   {
